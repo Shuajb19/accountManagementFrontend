@@ -1,17 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
+import {useAuthStore} from "@/store";
 
-const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        {
+const routes = [
+    {
             path: '/',
             component: AppLayout,
             children: [
                 {
-                    path: '/',
+                    path: '',
                     name: 'dashboard',
-                    component: () => import('@/views/Dashboard.vue')
+                    component: () => import('@/views/Dashboard.vue'),
+                    meta: { requiresAuth: true }
                 },
                 {
                     path: '/uikit/formlayout',
@@ -153,11 +153,15 @@ const router = createRouter({
             name: 'notfound',
             component: () => import('@/views/pages/NotFound.vue')
         },
-
         {
             path: '/auth/login',
             name: 'login',
             component: () => import('@/views/pages/auth/Login.vue')
+        },
+    {
+            path: '/auth/register',
+            name: 'register',
+            component: () => import('@/views/pages/auth/Register.vue')
         },
         {
             path: '/auth/access',
@@ -169,7 +173,20 @@ const router = createRouter({
             name: 'error',
             component: () => import('@/views/pages/auth/Error.vue')
         }
-    ]
-});
+        ];
+
+const router = createRouter({
+    history: createWebHistory(),
+    routes,
+})
+
+router.beforeEach((to, from, next) => {
+    const authStore = useAuthStore()
+    if (to.meta.requiresAuth && (authStore.token === null || authStore.token === "null")) {
+        next('/auth/login')
+    } else {
+        next()
+    }
+})
 
 export default router;
